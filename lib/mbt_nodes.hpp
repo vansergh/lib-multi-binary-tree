@@ -85,7 +85,7 @@ namespace mbt { // mbt - Multi Binary Tree
 
         NodePtr left{ nullptr };
         NodePtr right{ nullptr };
-        NodePtr parent{ nullptr };        
+        NodePtr parent{ nullptr };
         int balance_factor{ 0 };
     };
 
@@ -95,7 +95,7 @@ namespace mbt { // mbt - Multi Binary Tree
 
     template<class DataType>
     inline BaseNode<DataType>::BaseNode(const DataType& in_data) :
-        data{DataType(in_data)}
+        data{ DataType(in_data) }
     {
         // Default constructor
     }
@@ -106,7 +106,7 @@ namespace mbt { // mbt - Multi Binary Tree
 
     template<class DataType>
     inline SplayNode<DataType>::SplayNode(const DataType& in_data, NodePtr in_left, NodePtr in_right, NodePtr in_parent) :
-        BaseNode<DataType>{in_data},
+        BaseNode<DataType>{ in_data },
         left{ in_left },
         right{ in_right },
         parent{ in_parent }
@@ -117,11 +117,11 @@ namespace mbt { // mbt - Multi Binary Tree
     template<class DataType>
     inline SplayNode<DataType>::~SplayNode() {
         if (left && left->parent) {
-            delete left;    
+            delete left;
         }
         if (right && right->parent) {
-            delete right;    
-        }       
+            delete right;
+        }
     }
 
     ////////////////////////////////////
@@ -130,7 +130,7 @@ namespace mbt { // mbt - Multi Binary Tree
 
     template<class DataType>
     inline RBNode<DataType>::RBNode(const DataType& in_data, const Color in_color, NodePtr in_left, NodePtr in_right, NodePtr in_parent) :
-        BaseNode<DataType>{in_data},
+        BaseNode<DataType>{ in_data },
         left{ in_left },
         right{ in_right },
         parent{ in_parent },
@@ -142,10 +142,10 @@ namespace mbt { // mbt - Multi Binary Tree
     template<class DataType>
     inline RBNode<DataType>::~RBNode() {
         if (left && (left->right || left->left)) {
-            delete left;    
+            delete left;
         }
         if (right && (right->right || right->left)) {
-            delete right;    
+            delete right;
         }
     }
 
@@ -155,7 +155,7 @@ namespace mbt { // mbt - Multi Binary Tree
 
     template<class DataType>
     inline AVLNode<DataType>::AVLNode(const DataType& in_data, int in_balance_factor, NodePtr in_left, NodePtr in_right, NodePtr in_parent) :
-        BaseNode<DataType>{in_data},
+        BaseNode<DataType>{ in_data },
         left{ in_left },
         right{ in_right },
         parent{ in_parent },
@@ -167,14 +167,14 @@ namespace mbt { // mbt - Multi Binary Tree
     template<class DataType>
     inline AVLNode<DataType>::~AVLNode() {
         if (left && left->parent) {
-            delete left;    
+            delete left;
         }
         if (right && right->parent) {
-            delete right;    
-        }       
+            delete right;
+        }
     }
 
-    
+
 } // namespace mbt
 
 #endif // MBT_NODES_HPP

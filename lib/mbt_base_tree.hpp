@@ -66,8 +66,8 @@ namespace mbt { // mbt - Multi Binary Tree
 
         /////-> Utility protected methods <-/////
 
-        void LeftRotate_(NodeType* node);
-        void RightRotate_(NodeType* node);
+        NodeType* LeftRotateBase_(NodeType* node);
+        NodeType* RightRotateBase_(NodeType* node);
         NodeType* Min_(NodeType* node);
         NodeType* Max_(NodeType* node);
 
@@ -80,14 +80,14 @@ namespace mbt { // mbt - Multi Binary Tree
         void InitNullNode();
 
         /////-> Traverse private methods <-/////
-        
+
         template <class TreatmentFnc>
         void Preorder_(NodeType* node, const TreatmentFnc& treatament);
         template <class TreatmentFnc>
         void Inorder_(NodeType* node, const TreatmentFnc& treatament);
         template <class TreatmentFnc>
         void Postorder_(NodeType* node, const TreatmentFnc& treatament);
-        
+
         /////-> Display private methods <-/////
 
         template <class OutputFnc>
@@ -126,13 +126,13 @@ namespace mbt { // mbt - Multi Binary Tree
         root_ = null_node_;
         size_ = 0;
     }
-    
+
     template<class DataType, class NodeType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc, TreeModel model>
     inline size_t BaseTree<DataType, NodeType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc, model>::Size() {
         return size_;
     }
 
-template<class DataType, class NodeType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc, TreeModel model>
+    template<class DataType, class NodeType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc, TreeModel model>
     inline NodeType* BaseTree<DataType, NodeType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc, model>::Max() {
         return Max_(root_);
     }
@@ -160,7 +160,7 @@ template<class DataType, class NodeType, class LessCompareFnc, class GreaterComp
                     result.condition = SearchCondition::LESS;
                     result.node = index;
                     break;
-                }                    
+                }
                 else {
                     index = index->left;
                 }
@@ -173,7 +173,7 @@ template<class DataType, class NodeType, class LessCompareFnc, class GreaterComp
                 }
                 else {
                     index = index->right;
-                }   
+                }
             }
         }
 
@@ -228,11 +228,11 @@ template<class DataType, class NodeType, class LessCompareFnc, class GreaterComp
         SearchResult<NodeType> result = SearchNode_(newbie->data);
         if (result.condition == SearchCondition::LESS) {
             newbie->parent = result.node;
-            result.node->left = newbie; 
+            result.node->left = newbie;
         }
         else if (result.condition == SearchCondition::GREATER) {
             newbie->parent = result.node;
-            result.node->right = newbie;             
+            result.node->right = newbie;
         }
         else if (result.condition == SearchCondition::FOUND) { // key already exist
             newbie->parent = null_node_;
@@ -251,41 +251,47 @@ template<class DataType, class NodeType, class LessCompareFnc, class GreaterComp
     /////-> Utility protected methods <-/////
 
     template<class DataType, class NodeType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc, TreeModel model>
-    inline void BaseTree<DataType, NodeType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc, model>::LeftRotate_(NodeType* node) {
+    inline NodeType* BaseTree<DataType, NodeType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc, model>::LeftRotateBase_(NodeType* node) {
         NodeType* buffer = node->right;
         node->right = buffer->left;
-		if (buffer->left != null_node_) {
-			buffer->left->parent = node;
-		}
-		buffer->parent = node->parent;
-		if (node->parent == null_node_) {
-			root_ = buffer;
-		} else if (node == node->parent->left) {
-			node->parent->left = buffer;
-		} else {
-			node->parent->right = buffer;
-		}
-		buffer->left = node;
-        node->parent = buffer;    
+        if (buffer->left != null_node_) {
+            buffer->left->parent = node;
+        }
+        buffer->parent = node->parent;
+        if (node->parent == null_node_) {
+            root_ = buffer;
+        }
+        else if (node == node->parent->left) {
+            node->parent->left = buffer;
+        }
+        else {
+            node->parent->right = buffer;
+        }
+        buffer->left = node;
+        node->parent = buffer;
+        return buffer;
     }
 
     template<class DataType, class NodeType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc, TreeModel model>
-    inline void BaseTree<DataType, NodeType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc, model>::RightRotate_(NodeType* node) {
+    inline NodeType* BaseTree<DataType, NodeType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc, model>::RightRotateBase_(NodeType* node) {
         NodeType* buffer = node->left;
-		node->left = buffer->right;
-		if (buffer->right != null_node_) {
-			buffer->right->parent = node;
-		}
-		buffer->parent = node->parent;
-		if (node->parent == null_node_) {
-			root_ = buffer;
-		} else if (node == node->parent->right) {
-			node->parent->right = buffer;
-		} else {
-			node->parent->left = buffer;
-		}
-		buffer->right = node;
+        node->left = buffer->right;
+        if (buffer->right != null_node_) {
+            buffer->right->parent = node;
+        }
+        buffer->parent = node->parent;
+        if (node->parent == null_node_) {
+            root_ = buffer;
+        }
+        else if (node == node->parent->right) {
+            node->parent->right = buffer;
+        }
+        else {
+            node->parent->left = buffer;
+        }
+        buffer->right = node;
         node->parent = buffer;
+        return buffer;
     }
 
     template<class DataType, class NodeType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc, TreeModel model>
@@ -342,12 +348,12 @@ template<class DataType, class NodeType, class LessCompareFnc, class GreaterComp
         }
         else if constexpr (model == TreeModel::AVL) {
             null_node_ = new AVLNode<DataType>(DataType(), 0, null_node_, null_node_, null_node_);
-        } 
+        }
         root_ = null_node_;
     }
 
     /////-> Traverse private methods <-/////
-    
+
     template<class DataType, class NodeType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc, TreeModel model>
     template<class TreatmentFnc>
     inline void BaseTree<DataType, NodeType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc, model>::Preorder_(NodeType* node, const TreatmentFnc& treatament) {
@@ -367,14 +373,14 @@ template<class DataType, class NodeType, class LessCompareFnc, class GreaterComp
                 node = node->left;
             }
         }
-        delete[] stack;        
+        delete[] stack;
     }
 
     template<class DataType, class NodeType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc, TreeModel model>
     template<class TreatmentFnc>
     inline void BaseTree<DataType, NodeType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc, model>::Inorder_(NodeType* node, const TreatmentFnc& treatament) {
         size_t stack_size{ 0 };
-        NodeType** stack = new NodeType*[size_];
+        NodeType** stack = new NodeType * [size_];
         while (node != null_node_ || stack_size > 0) {
             if (stack_size > 0) {
                 node = stack[stack_size - 1];
@@ -393,14 +399,14 @@ template<class DataType, class NodeType, class LessCompareFnc, class GreaterComp
                 node = node->left;
             }
         }
-        delete[] stack;        
+        delete[] stack;
     }
 
     template<class DataType, class NodeType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc, TreeModel model>
     template<class TreatmentFnc>
     inline void BaseTree<DataType, NodeType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc, model>::Postorder_(NodeType* node, const TreatmentFnc& treatament) {
         size_t stack_size{ 0 };
-        NodeType** stack = new NodeType*[size_];
+        NodeType** stack = new NodeType * [size_];
         while (node != null_node_ || stack_size > 0) {
             if (stack_size > 0) {
                 node = stack[stack_size - 1];
@@ -421,7 +427,7 @@ template<class DataType, class NodeType, class LessCompareFnc, class GreaterComp
                     stack[stack_size] = node->right;
                     ++stack_size;
                     stack[stack_size] = node;
-                    ++stack_size;                    
+                    ++stack_size;
                 }
                 node = node->left;
             }
@@ -437,12 +443,12 @@ template<class DataType, class NodeType, class LessCompareFnc, class GreaterComp
         if (from == null_node_) {
             return;
         }
-    
+
         std::string prev_str = "    ";
-        Trunk *trunk = new Trunk(prev, prev_str);
-    
+        Trunk* trunk = new Trunk(prev, prev_str);
+
         Print_(from->right, trunk, true, out);
-    
+
         if (!prev) {
             trunk->str = "———";
         }
@@ -455,18 +461,18 @@ template<class DataType, class NodeType, class LessCompareFnc, class GreaterComp
             trunk->str = "`———";
             prev->str = prev_str;
         }
-    
-        ShowTrunk_(trunk,out);
+
+        ShowTrunk_(trunk, out);
         out(" ");
         out(from->data);
         out("\n");
-    
+
         if (prev) {
             prev->str = prev_str;
         }
         trunk->str = "   |";
-    
-        Print_(from->left, trunk, false,out);        
+
+        Print_(from->left, trunk, false, out);
     }
 
     template<class DataType, class NodeType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc, TreeModel model>
@@ -475,9 +481,9 @@ template<class DataType, class NodeType, class LessCompareFnc, class GreaterComp
         if (p == nullptr) {
             return;
         }
-    
-        ShowTrunk_(p->prev,out);
-        out(p->str);        
+
+        ShowTrunk_(p->prev, out);
+        out(p->str);
     }
 
 }
