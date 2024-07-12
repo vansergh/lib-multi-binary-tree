@@ -93,8 +93,7 @@ namespace mbt { // mbt - Multi Binary Tree
         return result.condition == SearchCondition::FOUND ? result.node : nullptr;
     }
 
-       /////-> Utility private methods <-/////
-
+    /////-> Utility private methods <-/////
 
     template<class DataType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc>
     inline void SplayTree<DataType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc>::Splay_(SplayNode<DataType>* node) {

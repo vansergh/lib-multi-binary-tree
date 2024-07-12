@@ -6,7 +6,7 @@
 namespace mbt { // mbt - Multi Binary Tree
 
     ////////////////////////////////////
-    // Base Node defenition
+    // Base Node declaration
     //////////////////////////////////
 
     template <class DataType>
@@ -17,7 +17,7 @@ namespace mbt { // mbt - Multi Binary Tree
     };
 
     ////////////////////////////////////
-    // Splay Node defenition
+    // Splay Node declaration
     //////////////////////////////////
 
     template <class DataType>
@@ -65,7 +65,7 @@ namespace mbt { // mbt - Multi Binary Tree
     };
 
     ////////////////////////////////////
-    // AVL Node defenition
+    // AVL Node declaration
     //////////////////////////////////    
 
     template <class DataType>
@@ -75,7 +75,7 @@ namespace mbt { // mbt - Multi Binary Tree
 
         AVLNode(
             const DataType& in_data = DataType(),
-            unsigned int in_height = 1,
+            int in_balance_factor = 1,
             NodePtr in_left = nullptr,
             NodePtr in_right = nullptr,
             NodePtr in_parent = nullptr
@@ -86,11 +86,11 @@ namespace mbt { // mbt - Multi Binary Tree
         NodePtr left{ nullptr };
         NodePtr right{ nullptr };
         NodePtr parent{ nullptr };        
-        unsigned int height{ 1 };
+        int balance_factor{ 0 };
     };
 
     ////////////////////////////////////
-    // Base Node declaration
+    // Base Node defenition
     //////////////////////////////////
 
     template<class DataType>
@@ -154,12 +154,12 @@ namespace mbt { // mbt - Multi Binary Tree
     //////////////////////////////////
 
     template<class DataType>
-    inline AVLNode<DataType>::AVLNode(const DataType& in_data, unsigned int in_height, NodePtr in_left, NodePtr in_right, NodePtr in_parent) :
+    inline AVLNode<DataType>::AVLNode(const DataType& in_data, int in_balance_factor, NodePtr in_left, NodePtr in_right, NodePtr in_parent) :
         BaseNode<DataType>{in_data},
         left{ in_left },
         right{ in_right },
         parent{ in_parent },
-        height{ in_height }
+        balance_factor{ in_balance_factor }
     {
         // Default constructor
     }

@@ -27,7 +27,6 @@ namespace mbt { // mbt - Multi Binary Tree
 
         using BaseTreeNamespace = BaseTree<DataType, RBNode<DataType>, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc, TreeModel::RED_BLACK>;
         
-        
         /////-> Utility private methods <-/////
 
         void BalanceAfterInsert_(RBNode<DataType>* node);
@@ -41,11 +40,10 @@ namespace mbt { // mbt - Multi Binary Tree
     };
 
     ////////////////////////////////////
-    ////////////////////////////////////
     // Red/Black Tree defenition
     //////////////////////////////////
 
-   /////-> Interface public methods <-/////
+    /////-> Interface public methods <-/////
 
     template<class DataType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc>
     inline DeleteResult RBTree<DataType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc>::Delete(const DataType& key) {
