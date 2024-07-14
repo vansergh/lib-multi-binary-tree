@@ -18,8 +18,6 @@ namespace mbt { // mbt - Multi Binary Tree
 
         DeleteResult Delete(const DataType& key);
         bool Insert(const DataType& key);
-        bool Contain(const DataType& key);
-        RBNode<DataType>* Search(const DataType& key);
 
     private:
 
@@ -61,35 +59,18 @@ namespace mbt { // mbt - Multi Binary Tree
     template<class DataType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc>
     inline bool RBTree<DataType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc>::Insert(const DataType& key) {
         RBNode<DataType>* newbie = new RBNode<DataType>(key, Color::RED, this->null_node_, this->null_node_, this->null_node_);
-
-        if (!BaseTreeNamespace::InsertNode_(newbie)) {
-            return false;
-        }
-
-        if (newbie->parent == this->null_node_) {
-            newbie->color = Color::BLACK;
+        if (BaseTreeNamespace::InsertNode_(newbie)) {
+            if (newbie->parent == this->null_node_) {
+                newbie->color = Color::BLACK;
+                return true;
+            }
+            if (newbie->parent->parent == this->null_node_) {
+                return true;
+            }
+            BalanceAfterInsert_(newbie);
             return true;
         }
-
-        if (newbie->parent->parent == this->null_node_) {
-            return true;
-        }
-
-        BalanceAfterInsert_(newbie);
-
-        return true;
-    }
-
-    template<class DataType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc>
-    inline bool RBTree<DataType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc>::Contain(const DataType& key) {
-        SearchResult result = BaseTreeNamespace::SearchNode_(key);
-        return result.condition == SearchCondition::FOUND;
-    }
-
-    template<class DataType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc>
-    inline RBNode<DataType>* RBTree<DataType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc>::Search(const DataType& key) {
-        SearchResult result = BaseTreeNamespace::SearchNode_(key);
-        return result.condition == SearchCondition::FOUND ? result.node : nullptr;
+        return false;
     }
 
     /////-> Utility private methods <-/////
@@ -109,18 +90,16 @@ namespace mbt { // mbt - Multi Binary Tree
                 else {
                     if (node == node->parent->left) {
                         node = node->parent;
-                        BaseTreeNamespace::RightRotateBase_(node);
+                        BaseTreeNamespace::RightRotate_(node);
                     }
                     node->parent->color = Color::BLACK;
                     node->parent->parent->color = Color::RED;
-                    BaseTreeNamespace::LeftRotateBase_(node->parent->parent);
+                    BaseTreeNamespace::LeftRotate_(node->parent->parent);
                 }
             }
             else {
                 buffer = node->parent->parent->right;
-
                 if (buffer->color == Color::RED) {
-
                     buffer->color = Color::BLACK;
                     node->parent->color = Color::BLACK;
                     node->parent->parent->color = Color::RED;
@@ -128,13 +107,12 @@ namespace mbt { // mbt - Multi Binary Tree
                 }
                 else {
                     if (node == node->parent->right) {
-
                         node = node->parent;
-                        BaseTreeNamespace::LeftRotateBase_(node);
+                        BaseTreeNamespace::LeftRotate_(node);
                     }
                     node->parent->color = Color::BLACK;
                     node->parent->parent->color = Color::RED;
-                    BaseTreeNamespace::RightRotateBase_(node->parent->parent);
+                    BaseTreeNamespace::RightRotate_(node->parent->parent);
                 }
             }
             if (node == this->root_) {
@@ -156,7 +134,7 @@ namespace mbt { // mbt - Multi Binary Tree
                 if (buffer->color == Color::RED) {
                     buffer->color = Color::BLACK;
                     node->parent->color = Color::RED;
-                    BaseTreeNamespace::LeftRotateBase_(node->parent);
+                    BaseTreeNamespace::LeftRotate_(node->parent);
                     buffer = node->parent->right;
                 }
 
@@ -169,14 +147,14 @@ namespace mbt { // mbt - Multi Binary Tree
                     if (buffer->right->color == Color::BLACK) {
                         buffer->left->color = Color::BLACK;
                         buffer->color = Color::RED;
-                        BaseTreeNamespace::RightRotateBase_(buffer);
+                        BaseTreeNamespace::RightRotate_(buffer);
                         buffer = node->parent->right;
                     }
 
                     buffer->color = node->parent->color;
                     node->parent->color = Color::BLACK;
                     buffer->right->color = Color::BLACK;
-                    BaseTreeNamespace::LeftRotateBase_(node->parent);
+                    BaseTreeNamespace::LeftRotate_(node->parent);
                     node = this->root_;
 
                 }
@@ -189,7 +167,7 @@ namespace mbt { // mbt - Multi Binary Tree
                 if (buffer->color == Color::RED) {
                     buffer->color = Color::BLACK;
                     node->parent->color = Color::RED;
-                    BaseTreeNamespace::RightRotateBase_(node->parent);
+                    BaseTreeNamespace::RightRotate_(node->parent);
                     buffer = node->parent->left;
                 }
 
@@ -202,14 +180,14 @@ namespace mbt { // mbt - Multi Binary Tree
                     if (buffer->left->color == Color::BLACK) {
                         buffer->right->color = Color::BLACK;
                         buffer->color = Color::RED;
-                        BaseTreeNamespace::LeftRotateBase_(buffer);
+                        BaseTreeNamespace::LeftRotate_(buffer);
                         buffer = node->parent->left;
                     }
 
                     buffer->color = node->parent->color;
                     node->parent->color = Color::BLACK;
                     buffer->left->color = Color::BLACK;
-                    BaseTreeNamespace::RightRotateBase_(node->parent);
+                    BaseTreeNamespace::RightRotate_(node->parent);
                     node = this->root_;
 
                 }
@@ -223,60 +201,49 @@ namespace mbt { // mbt - Multi Binary Tree
         if (first->parent == this->null_node_) {
             this->root_ = second;
         }
-        else if (first == first->parent->left) {
+        else if (BaseTreeNamespace::IsLeftChild_(first)) {
             first->parent->left = second;
         }
         else {
             first->parent->right = second;
         }
-        if (second != this->null_node_) {
-            second->parent = first->parent;
-        }
+        second->parent = first->parent;
     }
 
     /////-> Interface private methods <-/////
 
     template<class DataType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc>
     inline void RBTree<DataType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc>::DeleteNode_(RBNode<DataType>* node) {
-        RBNode<DataType>* first;
-        RBNode<DataType>* second = node;
-        Color original_color = second->color;
-
-        if (node->left == this->null_node_) {
-            first = node->right;
-            Transplant_(node, node->right);
+        RBNode<DataType>* copy = node;
+        RBNode<DataType>* buffer;
+		Color copy_original_color = copy->color;
+		if (node->left == this->null_node_) {
+			buffer = node->right;
+			Transplant_(node, node->right);
+		} else if (node->right == this->null_node_) {
+			buffer = node->left;
+			Transplant_(node, node->left);
+		} else {
+			copy = BaseTreeNamespace::Min_(node->right);
+			copy_original_color = copy->color;
+			buffer = copy->right;
+			if (copy->parent == node) {
+				buffer->parent = copy;
+			} else {
+				Transplant_(copy, copy->right);
+				copy->right = node->right;
+				copy->right->parent = copy;
+			}
+			Transplant_(node, copy);
+			copy->left = node->left;
+			copy->left->parent = copy;
+			copy->color = node->color;
         }
-        else if (node->right == this->null_node_) {
-            first = node->left;
-            Transplant_(node, node->left);
-        }
-        else {
-            second = BaseTreeNamespace::Min_(node->right);
-            original_color = second->color;
-            first = second->right;
-
-            if (second->parent == node) {
-                first->parent = second;
-            }
-            else {
-                Transplant_(second, second->right);
-                second->right = node->right;
-                second->right->parent = second;
-            }
-
-            Transplant_(node, second);
-            second->left = node->left;
-            second->left->parent = second;
-            second->color = node->color;
-        }
-        node->parent = this->null_node_;
-        node->left = this->null_node_;
-        node->right = this->null_node_;
-        delete node;
+        BaseTreeNamespace::DropNode_(node);
+        if (copy_original_color == Color::BLACK) {
+			BalanceAfterDelete_(buffer);
+		}
         --(this->size_);
-        if (first != this->null_node_ && original_color == Color::BLACK) {
-            BalanceAfterDelete_(first);
-        }
     }
 
 } // namespace mbt

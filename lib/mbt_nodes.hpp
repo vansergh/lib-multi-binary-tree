@@ -75,7 +75,7 @@ namespace mbt { // mbt - Multi Binary Tree
 
         AVLNode(
             const DataType& in_data = DataType(),
-            int in_balance_factor = 1,
+            int in_depth = 1,
             NodePtr in_left = nullptr,
             NodePtr in_right = nullptr,
             NodePtr in_parent = nullptr
@@ -86,7 +86,7 @@ namespace mbt { // mbt - Multi Binary Tree
         NodePtr left{ nullptr };
         NodePtr right{ nullptr };
         NodePtr parent{ nullptr };
-        int balance_factor{ 0 };
+        int depth{ 0 };
     };
 
     ////////////////////////////////////
@@ -141,12 +141,12 @@ namespace mbt { // mbt - Multi Binary Tree
 
     template<class DataType>
     inline RBNode<DataType>::~RBNode() {
-        if (left && (left->right || left->left)) {
+/*         if (left && (left->right || left->left)) {
             delete left;
         }
         if (right && (right->right || right->left)) {
             delete right;
-        }
+        } */
     }
 
     ////////////////////////////////////
@@ -154,12 +154,12 @@ namespace mbt { // mbt - Multi Binary Tree
     //////////////////////////////////
 
     template<class DataType>
-    inline AVLNode<DataType>::AVLNode(const DataType& in_data, int in_balance_factor, NodePtr in_left, NodePtr in_right, NodePtr in_parent) :
+    inline AVLNode<DataType>::AVLNode(const DataType& in_data, int in_depth, NodePtr in_left, NodePtr in_right, NodePtr in_parent) :
         BaseNode<DataType>{ in_data },
         left{ in_left },
         right{ in_right },
         parent{ in_parent },
-        balance_factor{ in_balance_factor }
+        depth{ in_depth }
     {
         // Default constructor
     }

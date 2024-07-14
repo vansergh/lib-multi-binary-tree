@@ -18,8 +18,6 @@ namespace mbt { // mbt - Multi Binary Tree
 
         DeleteResult Delete(const DataType& key);
         bool Insert(const DataType& key);
-        bool Contain(const DataType& key);
-        SplayNode<DataType>* Search(const DataType& key);
 
     private:
 
@@ -68,29 +66,11 @@ namespace mbt { // mbt - Multi Binary Tree
     template<class DataType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc>
     inline bool SplayTree<DataType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc>::Insert(const DataType& key) {
         SplayNode<DataType>* newbie = new SplayNode<DataType>(key, this->null_node_, this->null_node_, this->null_node_);
-        if (!BaseTreeNamespace::InsertNode_(newbie)) {
-            return false;
+        if (BaseTreeNamespace::InsertNode_(newbie)) {
+            Splay_(newbie);
+            return true;
         }
-        Splay_(newbie);
-        return true;
-    }
-
-    template<class DataType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc>
-    inline bool SplayTree<DataType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc>::Contain(const DataType& key) {
-        SearchResult result = BaseTreeNamespace::SearchNode_(key);
-        if (result.condition == SearchCondition::FOUND) {
-            Splay_(result.node);
-        }
-        return result.condition == SearchCondition::FOUND;
-    }
-
-    template<class DataType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc>
-    inline SplayNode<DataType>* SplayTree<DataType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc>::Search(const DataType& key) {
-        SearchResult result = BaseTreeNamespace::SearchNode_(key);
-        if (result.condition == SearchCondition::FOUND) {
-            Splay_(result.node);
-        }
-        return result.condition == SearchCondition::FOUND ? result.node : nullptr;
+        return false;
     }
 
     /////-> Utility private methods <-/////
@@ -100,27 +80,27 @@ namespace mbt { // mbt - Multi Binary Tree
         while (node->parent != this->null_node_) {
             if (node->parent->parent == this->null_node_) {
                 if (node == node->parent->left) {
-                    BaseTreeNamespace::RightRotateBase_(node->parent);
+                    BaseTreeNamespace::RightRotate_(node->parent);
                 }
                 else {
-                    BaseTreeNamespace::LeftRotateBase_(node->parent);
+                    BaseTreeNamespace::LeftRotate_(node->parent);
                 }
             }
             else if (node == node->parent->left && node->parent == node->parent->parent->left) {
-                BaseTreeNamespace::RightRotateBase_(node->parent->parent);
-                BaseTreeNamespace::RightRotateBase_(node->parent);
+                BaseTreeNamespace::RightRotate_(node->parent->parent);
+                BaseTreeNamespace::RightRotate_(node->parent);
             }
             else if (node == node->parent->right && node->parent == node->parent->parent->right) {
-                BaseTreeNamespace::LeftRotateBase_(node->parent->parent);
-                BaseTreeNamespace::LeftRotateBase_(node->parent);
+                BaseTreeNamespace::LeftRotate_(node->parent->parent);
+                BaseTreeNamespace::LeftRotate_(node->parent);
             }
             else if (node == node->parent->right && node->parent == node->parent->parent->left) {
-                BaseTreeNamespace::LeftRotateBase_(node->parent);
-                BaseTreeNamespace::RightRotateBase_(node->parent);
+                BaseTreeNamespace::LeftRotate_(node->parent);
+                BaseTreeNamespace::RightRotate_(node->parent);
             }
             else {
-                BaseTreeNamespace::RightRotateBase_(node->parent);
-                BaseTreeNamespace::LeftRotateBase_(node->parent);
+                BaseTreeNamespace::RightRotate_(node->parent);
+                BaseTreeNamespace::LeftRotate_(node->parent);
             }
         }
     }

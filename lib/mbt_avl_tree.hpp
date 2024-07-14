@@ -6,16 +6,6 @@
 
 namespace mbt { // mbt - Multi Binary Tree
 
-    /////-> Utility funtions <-/////
-
-    int min(int left, int right) {
-        return left < right ? left : right;
-    }
-
-    int max(int left, int right) {
-        return left > right ? left : right;
-    }
-
     ////////////////////////////////////
     // AVL Tree declaration
     //////////////////////////////////
@@ -28,8 +18,7 @@ namespace mbt { // mbt - Multi Binary Tree
 
         DeleteResult Delete(const DataType& key);
         bool Insert(const DataType& key);
-        bool Contain(const DataType& key);
-        AVLNode<DataType>* Search(const DataType& key);
+        int GetDepth();
 
     private:
 
@@ -39,10 +28,12 @@ namespace mbt { // mbt - Multi Binary Tree
 
         /////-> Utility private methods <-/////
 
-        void UpdateBalance_(AVLNode<DataType>* node);
+        int GetDepth_(AVLNode<DataType>* node);
+        bool IsBalanced_(AVLNode<DataType>* node);
+        AVLNode<DataType>* GetTallerChild_(AVLNode<DataType>* node);
+        void BalanceAfterDelete_(AVLNode<DataType>* node);
+        void BalanceAfterInsert_(AVLNode<DataType>* node);
         void Rebalance_(AVLNode<DataType>* node);
-        void LeftRotate_(AVLNode<DataType>* node);
-        void RightRotate_(AVLNode<DataType>* node);
 
         /////-> Interface private methods <-/////
 
@@ -58,138 +49,156 @@ namespace mbt { // mbt - Multi Binary Tree
 
     template<class DataType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc>
     inline DeleteResult AVLTree<DataType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc>::Delete(const DataType& key) {
-        /*         SearchResult<AVLNode<DataType>> result = BaseTreeNamespace::SearchNode_(key);
-                if (result.condition == SearchCondition::EMPTY) {
-                    return DeleteResult::EMPTY;
-                }
-                if (result.condition != SearchCondition::FOUND) {
-                    return DeleteResult::NOT_FOUND;
-                }
-                DeleteNode_(result.node);*/
+        SearchResult<AVLNode<DataType>> result = BaseTreeNamespace::SearchNode_(key);
+        if (result.condition == SearchCondition::EMPTY) {
+            return DeleteResult::EMPTY;
+        }
+        if (result.condition != SearchCondition::FOUND) {
+            return DeleteResult::NOT_FOUND;
+        }
+        DeleteNode_(result.node);
         return DeleteResult::SUCCESS;
     }
 
     template<class DataType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc>
     inline bool AVLTree<DataType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc>::Insert(const DataType& key) {
-        /*         AVLNode<DataType>* newbie = new AVLNode<DataType>(key, Color::RED, this->null_node_, this->null_node_, this->null_node_);
-
-                if (!BaseTreeNamespace::InsertNode_(newbie)) {
-                    return false;
-                }
-
-                if (newbie->parent == this->null_node_) {
-                    newbie->color = Color::BLACK;
-                    return true;
-                }
-
-                if (newbie->parent->parent == this->null_node_) {
-                    return true;
-                }
-
-                BalanceAfterInsert_(newbie);
-                */
-        return true;
+        AVLNode<DataType>* newbie = new AVLNode<DataType>(key, 1, this->null_node_, this->null_node_, this->null_node_);
+        if (BaseTreeNamespace::InsertNode_(newbie)) {
+            BalanceAfterInsert_(newbie);
+            return true;
+        }
+        return false;
     }
 
     template<class DataType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc>
-    inline bool AVLTree<DataType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc>::Contain(const DataType& key) {
-        SearchResult result = BaseTreeNamespace::SearchNode_(key);
-        return result.condition == SearchCondition::FOUND;
-    }
-
-    template<class DataType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc>
-    inline AVLNode<DataType>* AVLTree<DataType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc>::Search(const DataType& key) {
-        SearchResult result = BaseTreeNamespace::SearchNode_(key);
-        return result.condition == SearchCondition::FOUND ? result.node : nullptr;
+    inline int AVLTree<DataType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc>::GetDepth() {
+        return GetDepth_(this->root_);
     }
 
     /////-> Utility private methods <-/////
 
     template<class DataType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc>
-    inline void AVLTree<DataType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc>::UpdateBalance_(AVLNode<DataType>* node) {
+    inline int AVLTree<DataType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc>::GetDepth_(AVLNode<DataType>* node) {
+        return (node->left == this->null_node_ ? 0 : node->left->depth) - (node->right == this->null_node_ ? 0 : node->right->depth);
+    }
 
+    template<class DataType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc>
+    inline bool AVLTree<DataType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc>::IsBalanced_(AVLNode<DataType>* node) {
+        int node_depth = GetDepth_(node);
+        return node_depth >= -1 && node_depth <= 1;
+    }
+
+    template<class DataType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc>
+    inline AVLNode<DataType>* AVLTree<DataType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc>::GetTallerChild_(AVLNode<DataType>* node) {
+        int left_depth = node->left == this->null_node_ ? 0 : node->left->depth;
+        int right_depth = node->right == this->null_node_ ? 0 : node->right->depth;
+        if (left_depth > right_depth)
+            return node->left;
+        if (left_depth < right_depth)
+            return node->right;
+        return BaseTreeNamespace::IsLeftChild_(node) ? node->left : node->right;
+    }
+
+    template<class DataType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc>
+    inline void AVLTree<DataType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc>::BalanceAfterDelete_(AVLNode<DataType>* node) {
+        if (node == this->null_node_) {
+            return;
+        }
+        node = node->parent;
+        while (node != this->null_node_) {
+            if (IsBalanced_(node)) {
+                BaseTreeNamespace::UpdateDepth_(node);
+            }
+            else {
+                Rebalance_(node);
+            }
+            node = node->parent;
+        }
+    }
+
+    template<class DataType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc>
+    inline void AVLTree<DataType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc>::BalanceAfterInsert_(AVLNode<DataType>* node) {
+        if (node == this->null_node_) {
+            return;
+        }
+        node = node->parent;
+        while (node != this->null_node_) {
+            if (IsBalanced_(node)) {
+                BaseTreeNamespace::UpdateDepth_(node);
+            }
+            else {
+                Rebalance_(node);
+                break;
+            }
+            node = node->parent;
+        }
     }
 
     template<class DataType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc>
     inline void AVLTree<DataType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc>::Rebalance_(AVLNode<DataType>* node) {
-        if (node->balance_factor > 0) {
-            if (node->right->balance_factor < 0) {
-                BaseTreeNamespace::RightRotateBase_(node->right);
-                BaseTreeNamespace::LeftRotateBase_(node);
+        AVLNode<DataType>* first = GetTallerChild_(node);
+        AVLNode<DataType>* second = GetTallerChild_(first);
+        if (BaseTreeNamespace::IsLeftChild_(first)) {
+            if (BaseTreeNamespace::IsLeftChild_(second)) {
+                BaseTreeNamespace::RightRotate_(node);
             }
             else {
-                BaseTreeNamespace::LeftRotateBase_(node);
+                BaseTreeNamespace::LeftRotate_(first);
+                BaseTreeNamespace::RightRotate_(node);
             }
         }
-        else if (node->balance_factor < 0) {
-            if (node->left->balance_factor > 0) {
-                BaseTreeNamespace::LeftRotateBase_(node->left);
-                BaseTreeNamespace::RightRotateBase_(node);
+        else {
+            if (BaseTreeNamespace::IsLeftChild_(second)) {
+                BaseTreeNamespace::RightRotate_(first);
+                BaseTreeNamespace::LeftRotate_(node);
             }
             else {
-                BaseTreeNamespace::RightRotateBase_(node);
+                BaseTreeNamespace::LeftRotate_(node);
             }
         }
     }
-
-    template<class DataType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc>
-    inline void AVLTree<DataType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc>::LeftRotate_(AVLNode<DataType>* node) {
-        AVLNode<DataType>* buffer = BaseTreeNamespace::LeftRotateBase_(node);
-        node->balance_factor = node->balance_factor - 1 - max(0, buffer->balance_factor);
-        buffer->balance_factor = buffer->balance_factor - 1 + min(0, node->balance_factor);
-    }
-
-    template<class DataType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc>
-    inline void AVLTree<DataType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc>::RightRotate_(AVLNode<DataType>* node) {
-        AVLNode<DataType>* buffer = BaseTreeNamespace::RightRotateBase_(node);
-        node->balance_factor = node->balance_factor + 1 - min(0, buffer->balance_factor);
-        buffer->balance_factor = buffer->balance_factor + 1 + max(0, node->balance_factor);
-    }
-
 
     /////-> Interface private methods <-/////
 
     template<class DataType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc>
     inline void AVLTree<DataType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc>::DeleteNode_(AVLNode<DataType>* node) {
-        /*     AVLNode<DataType>* first;
-            AVLNode<DataType>* second = node;
-            Color original_color = second->color;
+        if (BaseTreeNamespace::HasTwoChildren_(node)) {
+            AVLNode<DataType>* succesor = BaseTreeNamespace::Successor_(node);
+            node->data = succesor->data;
+            node = succesor;
+        }
 
-            if (node->left == this->null_node_) {
-                first = node->right;
-                Transplant_(node, node->right);
+        AVLNode<DataType>* replacement = node->left != this->null_node_ ? node->left : node->right;
+
+        if (replacement != this->null_node_) {
+            replacement->parent = node->parent;
+            if (node->parent == this->null_node_) {
+                this->root_ = replacement;
             }
-            else if (node->right == this->null_node_) {
-                first = node->left;
-                Transplant_(node, node->left);
+            else if (BaseTreeNamespace::IsLeftChild_(node)) {
+                node->parent->left = replacement;
             }
             else {
-                second = BaseTreeNamespace::Min_(node->right);
-                original_color = second->color;
-                first = second->right;
-
-                if (second->parent == node) {
-                    first->parent = second;
-                }
-                else {
-                    Transplant_(second, second->right);
-                    second->right = node->right;
-                    second->right->parent = second;
-                }
-
-                Transplant_(node, second);
-                second->left = node->left;
-                second->left->parent = second;
-                second->color = node->color;
+                node->parent->right = replacement;
             }
-            node->parent = this->null_node_;
-            node->left = this->null_node_;
-            node->right = this->null_node_;
-            delete node;
-            --(this->size_);
-            if (first != this->null_node_ && original_color == Color::BLACK) {
-                BalanceAfterDelete_(first);
-            } */
+            BalanceAfterDelete_(replacement);
+            BaseTreeNamespace::DropNode_(node);
+        }
+        else if (node->parent == this->null_node_) {
+            this->root_ = this->null_node_;
+            BaseTreeNamespace::DropNode_(node);
+        }
+        else {
+            if (node->parent->left == node) {
+                node->parent->left = this->null_node_;
+            }
+            else {
+                node->parent->right = this->null_node_;
+            }
+            BalanceAfterDelete_(node);
+            BaseTreeNamespace::DropNode_(node);
+        }
+        --(this->size_);
     }
 
 } // namespace mbt
