@@ -31,6 +31,10 @@ namespace mbt { // mbt - Multi Binary Tree
         void Split_(SplayNode<DataType>*& first, SplayNode<DataType>*& second, SplayNode<DataType>*& third);
         SplayNode<DataType>* Join_(SplayNode<DataType>* first, SplayNode<DataType>* second);
 
+        /////-> Interface private methods <-/////
+
+        void DeleteNode_(SplayNode<DataType>* node);        
+
     };
 
     ////////////////////////////////////
@@ -48,18 +52,7 @@ namespace mbt { // mbt - Multi Binary Tree
         if (result.condition != SearchCondition::FOUND) {
             return DeleteResult::NOT_FOUND;
         }
-        SplayNode<DataType>* first = result.node;
-        SplayNode<DataType>* second = this->null_node_;
-        SplayNode<DataType>* third = this->null_node_;
-        Split_(first, second, third);
-        if (second->left != this->null_node_) {
-            second->parent = this->null_node_;
-        }
-        this->root_ = Join_(second->left, third);
-        second->parent = this->null_node_;
-        second->left = this->null_node_;
-        second->right = this->null_node_;
-        delete second;
+        DeleteNode_(result.node);
         return DeleteResult::SUCCESS;
     }
 
@@ -134,6 +127,21 @@ namespace mbt { // mbt - Multi Binary Tree
         third->right = second;
         second->parent = third;
         return third;
+    }
+
+    /////-> Interface private methods <-/////
+    
+    template<class DataType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc>
+    inline void SplayTree<DataType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc>::DeleteNode_(SplayNode<DataType>* node) {
+        SplayNode<DataType>* first = node;
+        SplayNode<DataType>* second = this->null_node_;
+        SplayNode<DataType>* third = this->null_node_;
+        Split_(first, second, third);
+        if (second->left != this->null_node_) {
+            second->parent = this->null_node_;
+        }
+        this->root_ = Join_(second->left, third);
+        BaseTreeNamespace::DropNode_(second);
     }
 
 } // namespace mbt

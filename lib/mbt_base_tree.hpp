@@ -82,6 +82,7 @@ namespace mbt { // mbt - Multi Binary Tree
         NodeType* Max();
         NodeType* Min();
         NodeType* GetRoot();
+        TreeModel GetTreeModel();
         bool IsEmpty();
         bool Contains(const DataType& key);
         NodeType* Search(const DataType& key);
@@ -123,7 +124,7 @@ namespace mbt { // mbt - Multi Binary Tree
         NodeType* Min_(NodeType* node);
         NodeType* Max_(NodeType* node);
         NodeType* Successor_(NodeType* node);
-        NodeType* Predecessor_(NodeType* node);        
+        NodeType* Predecessor_(NodeType* node);
         bool IsLeaf_(NodeType* node);
         bool IsLeftChild_(NodeType* node);
         bool IsRightChild_(NodeType* node);
@@ -131,7 +132,7 @@ namespace mbt { // mbt - Multi Binary Tree
         void DropNode_(NodeType* node);
 
     private:
-        
+
         /////-> Traverse private methods <-/////
 
         template <class TreatmentFnc>
@@ -140,6 +141,7 @@ namespace mbt { // mbt - Multi Binary Tree
         void Inorder_(NodeType* node, const TreatmentFnc& treatament);
         template <class TreatmentFnc>
         void Postorder_(NodeType* node, const TreatmentFnc& treatament);
+        void ReverseNode_(NodeType* node);
 
         /////-> Display private methods <-/////
 
@@ -175,6 +177,7 @@ namespace mbt { // mbt - Multi Binary Tree
     inline BaseTree<DataType, NodeType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc, model>::~BaseTree() {
         Clear();
         delete null_node_;
+        null_node_ = nullptr;
     }
 
     /////-> Interface public methods <-/////
@@ -184,10 +187,10 @@ namespace mbt { // mbt - Multi Binary Tree
         if (IsEmpty()) {
             return;
         }
-        if (root_) {
+        if (root_ != null_node_) {
             delete root_;
+            root_ = null_node_;
         }
-        root_ = null_node_;
         size_ = 0;
     }
 
@@ -212,6 +215,11 @@ namespace mbt { // mbt - Multi Binary Tree
     }
 
     template<class DataType, class NodeType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc, TreeModel model>
+    inline TreeModel BaseTree<DataType, NodeType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc, model>::GetTreeModel() {
+        return model;
+    }
+
+    template<class DataType, class NodeType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc, TreeModel model>
     inline bool BaseTree<DataType, NodeType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc, model>::IsEmpty() {
         return size_ == 0;
     }
@@ -226,7 +234,7 @@ namespace mbt { // mbt - Multi Binary Tree
     inline NodeType* BaseTree<DataType, NodeType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc, model>::Search(const DataType& key) {
         SearchResult result = SearchNode_(key);
         return result.condition == SearchCondition::FOUND ? result.node : nullptr;
-    }    
+    }
 
     /////-> Traverse public methods <-/////
 
@@ -327,11 +335,11 @@ namespace mbt { // mbt - Multi Binary Tree
         }
         return result;
     }
-    
+
     /////-> Utility protected methods <-/////
 
     template<class DataType, class NodeType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc, TreeModel model>
-    inline void BaseTree<DataType, NodeType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc, model>::LeftRotate_(NodeType* node) {   
+    inline void BaseTree<DataType, NodeType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc, model>::LeftRotate_(NodeType* node) {
         NodeType* parent_node = node->right;
         NodeType* child_node = parent_node->left;
         node->right = child_node;
@@ -366,7 +374,7 @@ namespace mbt { // mbt - Multi Binary Tree
         grand_node->parent = parent_node;
         if constexpr (model == TreeModel::AVL) {
             UpdateDepth_(grand_node);
-            UpdateDepth_(parent_node);            
+            UpdateDepth_(parent_node);
         }
     }
 
@@ -374,7 +382,7 @@ namespace mbt { // mbt - Multi Binary Tree
     inline void BaseTree<DataType, NodeType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc, model>::UpdateDepth_(NodeType* node) {
         int left_depth = node->left == this->null_node_ ? 0 : node->left->depth;
         int right_depth = node->right == this->null_node_ ? 0 : node->right->depth;
-        node->depth = 1 + (left_depth > right_depth ? left_depth : right_depth);        
+        node->depth = 1 + (left_depth > right_depth ? left_depth : right_depth);
     }
 
     template<class DataType, class NodeType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc, TreeModel model>
@@ -413,7 +421,7 @@ namespace mbt { // mbt - Multi Binary Tree
     inline NodeType* BaseTree<DataType, NodeType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc, model>::Predecessor_(NodeType* node) {
         if (node == null_node_) {
             return null_node_;
-        }        
+        }
         if (node->left != null_node_) {
             return Max_(node->left);
         }
@@ -423,7 +431,7 @@ namespace mbt { // mbt - Multi Binary Tree
             index = index->parent;
         }
         return index;
-    }    
+    }
 
     template<class DataType, class NodeType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc, TreeModel model>
     inline bool BaseTree<DataType, NodeType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc, model>::IsLeaf_(NodeType* node) {
@@ -450,91 +458,131 @@ namespace mbt { // mbt - Multi Binary Tree
         node->parent = this->null_node_;
         node->left = this->null_node_;
         node->right = this->null_node_;
-        delete node;        
+        delete node;
+        node = nullptr;
     }
 
+    template<class DataType, class NodeType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc, TreeModel model>
+    inline void BaseTree<DataType, NodeType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc, model>::ReverseNode_(NodeType* node) {
+        NodeType* pre;
+        while (node != null_node_) {
+            NodeType* next = node->right;
+            node->right = pre;
+            pre = node;
+            node = next;
+        }
+    }
 
     /////-> Traverse private methods <-/////
 
     template<class DataType, class NodeType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc, TreeModel model>
     template<class TreatmentFnc>
     inline void BaseTree<DataType, NodeType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc, model>::Preorder_(NodeType* node, const TreatmentFnc& treatament) {
-        size_t stack_size{ 0 };
-        NodeType** stack = new NodeType * [size_];
-        while (node != null_node_ || stack_size > 0) {
-            if (stack_size > 0) {
-                node = stack[stack_size - 1];
-                --stack_size;
-            }
-            while (node != null_node_) {
+        if (node == null_node_) {
+            return;
+        }
+        while (node != null_node_) {
+            if (node->left == null_node_) {
                 treatament(node);
-                if (node->right != null_node_) {
-                    stack[stack_size] = node->right;
-                    ++stack_size;
+                node = node->right;
+            }
+            else {
+                NodeType* temp = node->left;
+                while (temp->right != null_node_ && temp->right != node) {
+                    temp = temp->right;
                 }
-                node = node->left;
+                if (temp->right == null_node_) {
+                    temp->right = node;
+                    treatament(node);
+                    node = node->left;
+                }
+                else {
+                    temp->right = null_node_;
+                    node = node->right;
+                }
             }
         }
-        delete[] stack;
     }
 
     template<class DataType, class NodeType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc, TreeModel model>
     template<class TreatmentFnc>
     inline void BaseTree<DataType, NodeType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc, model>::Inorder_(NodeType* node, const TreatmentFnc& treatament) {
-        size_t stack_size{ 0 };
-        NodeType** stack = new NodeType * [size_];
-        while (node != null_node_ || stack_size > 0) {
-            if (stack_size > 0) {
-                node = stack[stack_size - 1];
-                --stack_size;
+        if (node == null_node_) {
+            return;
+        }
+        while (node != null_node_) {
+            if (node->left == null_node_) {
                 treatament(node);
-                if (node->right != null_node_) {
-                    node = node->right;
+                node = node->right;
+            }
+            else {
+                NodeType* temp = node->left;
+                while (temp->right != null_node_ && temp->right != node) {
+                    temp = temp->right;
+                }
+                if (temp->right == null_node_) {
+                    temp->right = node;
+                    node = node->left;
                 }
                 else {
-                    node = null_node_;
+                    temp->right = null_node_;
+                    treatament(node);
+                    node = node->right;
                 }
             }
-            while (node != null_node_) {
-                stack[stack_size] = node;
-                ++stack_size;
-                node = node->left;
-            }
         }
-        delete[] stack;
     }
 
     template<class DataType, class NodeType, class LessCompareFnc, class GreaterCompareFnc, class EqualCompareFnc, TreeModel model>
     template<class TreatmentFnc>
     inline void BaseTree<DataType, NodeType, LessCompareFnc, GreaterCompareFnc, EqualCompareFnc, model>::Postorder_(NodeType* node, const TreatmentFnc& treatament) {
-        size_t stack_size{ 0 };
-        NodeType** stack = new NodeType * [size_];
-        while (node != null_node_ || stack_size > 0) {
-            if (stack_size > 0) {
-                node = stack[stack_size - 1];
-                --stack_size;
-                if (stack_size > 0 && node->right == stack[stack_size - 1]) {
-                    node = stack[stack_size - 1];
-                    --stack_size;
+        if (node == null_node_) {
+            return;
+        }
+        NodeType* temp_node = new NodeType();
+        temp_node->left = node;
+        NodeType* index = temp_node;
+        NodeType* pred;
+        NodeType* first;
+        NodeType* middle;
+        NodeType* last;
+        while (index != null_node_ && index != nullptr) {
+            if (index->left == null_node_) {
+                index = index->right;
+            }
+            else {
+                pred = index->left;
+                while (pred->right != null_node_ && pred->right != index) {
+                    pred = pred->right;
+                }
+                if (pred->right == null_node_) {
+                    pred->right = index;
+                    index = index->left;
                 }
                 else {
-                    treatament(node);
-                    node = null_node_;
+                    first = index;
+                    middle = index->left;
+                    while (middle != index) {
+                        last = middle->right;
+                        middle->right = first;
+                        first = middle;
+                        middle = last;
+                    }
+                    first = index;
+                    middle = pred;
+                    while (middle != index) {
+                        treatament(middle);
+                        last = middle->right;
+                        middle->right = first;
+                        first = middle;
+                        middle = last;
+                    }
+                    pred->right = null_node_;
+                    index = index->right;
                 }
-            }
-            while (node != null_node_) {
-                stack[stack_size] = node;
-                ++stack_size;
-                if (node->right != null_node_) {
-                    stack[stack_size] = node->right;
-                    ++stack_size;
-                    stack[stack_size] = node;
-                    ++stack_size;
-                }
-                node = node->left;
             }
         }
-        delete[] stack;
+        DropNode_(temp_node);
     }
 
     /////-> Display private methods <-/////
@@ -548,7 +596,7 @@ namespace mbt { // mbt - Multi Binary Tree
                 out("(ROOT)──");
             }
             else if (is_left) {
-                if (from->right == from->left && has_one_child) {
+                if (/* from->right == from->left  &&*/ has_one_child) {
                     out("  └─(L)─");
                 }
                 else {
@@ -582,9 +630,10 @@ namespace mbt { // mbt - Multi Binary Tree
 
 
             out("\n");
+            std::string dash = has_one_child ? " " : "│";
             has_one_child = from->left != from->right && (from->left == null_node_ || from->right == null_node_);
-            PrintStruct_(from->left, prefix + (is_left ? "  │   " : "      "), true, has_one_child, out);
-            PrintStruct_(from->right, prefix + (is_left ? "  │   " : "      "), false, has_one_child, out);
+            PrintStruct_(from->left, prefix + (is_left ? "  " + dash + "   " : "      "), true, has_one_child, out);
+            PrintStruct_(from->right, prefix + (is_left ? "  " + dash + "   " : "      "), false, has_one_child, out);
         }
     }
 

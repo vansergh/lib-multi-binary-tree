@@ -141,12 +141,12 @@ namespace mbt { // mbt - Multi Binary Tree
 
     template<class DataType>
     inline RBNode<DataType>::~RBNode() {
-/*         if (left && (left->right || left->left)) {
+        if (left && (left->right || left->left)) {
             delete left;
         }
         if (right && (right->right || right->left)) {
             delete right;
-        } */
+        }
     }
 
     ////////////////////////////////////

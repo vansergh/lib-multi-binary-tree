@@ -70,6 +70,9 @@ namespace mbt { // mbt - Multi Binary Tree
             BalanceAfterInsert_(newbie);
             return true;
         }
+        else {
+            BaseTreeNamespace::DropNode_(newbie);
+        }
         return false;
     }
 

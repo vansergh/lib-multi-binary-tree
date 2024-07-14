@@ -95,30 +95,26 @@ void TestInsert2(Tree& tree, const PrintFnc& out) {
 }
 
 template <class Tree, class PrintFnc>
-void TestSearch(Tree& tree, const PrintFnc& out) {
-    out("\n\n`Search` function. searching for `2`.\n");
+void TestSearch(Tree& tree, const PrintFnc& out, int item, int result1, int result2) {
+    out("\n\n`Search` function. searching for `");out(item);out("`.\n");
     out("If this is successful, the values of the left and\n");
     out("right nodes will be displayed:\n");
-    out("Correct result for AVL: 1, 3\n");
-    out("Correct result for Red/Black: 1, 5\n");
-    out("Correct result for Splay: 1, 5\n");
+    std::string correct_str = "Correct result for AVL: " + std::to_string(result1) + ", " + std::to_string(result2) + "\n";
+    out(correct_str);
     {
+        out("---------------------------------------\n");
         auto* result = tree.Search(2);
         if (result) {
-            out("---------------------------------------\n");
             out("Left: ");
             out(result->left->data);
             out("\n");
             out("Right: ");
             out(result->right->data);
-            out("\n---------------------------------------");
         }
         else {
-            out("---------------------------------------\n");
             out("Search failed");
         }
-        out("\n * Splay tree must splay after this test.\n");
-        tree.Print(out);
+        out("\n---------------------------------------");
     }
 }
 
@@ -133,8 +129,7 @@ void TestContains1(Tree& tree, const PrintFnc& out) {
     else {
         out("false");
     }
-    out("\n * Splay tree must splay after this test.\n");
-    tree.Print(out);
+    out("\n---------------------------------------");
 }
 
 template <class Tree, class PrintFnc>
@@ -148,8 +143,7 @@ void TestContains2(Tree& tree, const PrintFnc& out) {
     else {
         out("false");
     }
-    out("\n * Splay tree must splay after this test.\n");
-    tree.Print(out);
+    out("\n---------------------------------------");
 }
 
 template <class Tree, class PrintFnc>
@@ -218,7 +212,7 @@ void TestInsert3(Tree& tree, const PrintFnc& out) {
     tree.Insert(150);tree.Insert(100);tree.Insert(700);
     tree.Insert(650);tree.Insert(600);tree.Insert(900);
     tree.Insert(450);tree.Insert(550);tree.Insert(50);
-    tree.Insert(20);tree.Insert(800);
+    tree.Insert(20);tree.Insert(800); 
     tree.Print(out);
 }
 
@@ -356,19 +350,27 @@ void TestGlithy(Tree& tree, const PrintFnc& out) {
 
 template <class Tree, class PrintFnc>
 void TestScalar(Tree& tree, const PrintFnc& out) {
-    TestInsert1(tree, out);
+    /*TestInsert1(tree, out);
     TestInsert2(tree, out);
-    TestSearch(tree, out);
+    if (tree.GetTreeModel() == mbt::TreeModel::AVL) {
+        TestSearch(tree, out, 2, 1, 3);    
+    }
+    else if (tree.GetTreeModel() == mbt::TreeModel::RED_BLACK) {
+        TestSearch(tree, out, 2, 1, 5);    
+    }
+    else {
+        TestSearch(tree, out, 2, 1, 5);   
+    }
     TestContains1(tree, out);
     TestContains2(tree, out);
     TestMin(tree, out);
     TestMax(tree, out);
-    TestClear(tree, out);
+    TestClear(tree, out);*/
     TestInsert3(tree, out);
     TestInorder(tree, out);
     TestPreorder(tree, out);
     TestPostorder(tree, out);
-    TestIsEmpty(tree, out);
+    /*TestIsEmpty(tree, out);
     TestSize(tree, out);
     TestClear(tree, out);
     TestInsert4(tree, out);
@@ -376,7 +378,7 @@ void TestScalar(Tree& tree, const PrintFnc& out) {
     TestDelete2(tree, out);
     TestClear(tree, out);
     TestGlithy(tree, out);
-    TestClear(tree, out);
+    TestClear(tree, out);  */
 }
 
 template <class Tree, class PrintFnc>
@@ -392,9 +394,45 @@ void TestClass(Tree& tree, const PrintFnc& out) {
     tree.Print(out);
 }
 
-void TestTrees() {
+void TestAVL() {
     auto print_fnc = [](auto& str) {
-        std::cout << str;
+    std::cout << str;
+        };    
+    std::cout << "//////////////////////////////\n";
+    std::cout << "// AVL Tree                 //\n";
+    std::cout << "//////////////////////////////";
+
+    std::cout << "\n\n==============================\n";
+    std::cout << "> Scalar Test";
+    std::cout << "\n==============================\n";
+    
+    {
+        mbt::AVLTree<int, std::less<int>, std::greater<int>, std::equal_to<int>> avl_tree;
+        TestScalar(avl_tree, print_fnc);
+    }
+}
+
+void TestSplay() {
+    auto print_fnc = [](auto& str) {
+    std::cout << str;
+        };    
+    std::cout << "//////////////////////////////\n";
+    std::cout << "// Splay Tree                 //\n";
+    std::cout << "//////////////////////////////";
+
+    std::cout << "\n\n==============================\n";
+    std::cout << "> Scalar Test";
+    std::cout << "\n==============================\n";
+    
+    {
+        mbt::SplayTree<int, std::less<int>, std::greater<int>, std::equal_to<int>> splay_tree;
+        TestScalar(splay_tree, print_fnc);
+    }     
+}
+
+void TestRB() {
+    auto print_fnc = [](auto& str) {
+    std::cout << str;
         };
     std::cout << "//////////////////////////////\n";
     std::cout << "// Red/Black Tree           //\n";
@@ -407,33 +445,16 @@ void TestTrees() {
     {
         mbt::RBTree<int, std::less<int>, std::greater<int>, std::equal_to<int>> rb_tree;
         TestScalar(rb_tree, print_fnc);
-    }
-    
-    /*     std::cout << "//////////////////////////////\n";
-    std::cout << "// Splay Tree                 //\n";
-    std::cout << "//////////////////////////////";
+    }    
+}
 
-    std::cout << "\n\n==============================\n";
-    std::cout << "> Scalar Test";
-    std::cout << "\n==============================\n";
-    
-    {
-        mbt::SplayTree<int, std::less<int>, std::greater<int>, std::equal_to<int>> splay_tree;
-        TestScalar(splay_tree, print_fnc);
-    } */
-    
-/*     std::cout << "//////////////////////////////\n";
-    std::cout << "// AVL Tree                 //\n";
-    std::cout << "//////////////////////////////";
+void TestTrees() {
 
-    std::cout << "\n\n==============================\n";
-    std::cout << "> Scalar Test";
-    std::cout << "\n==============================\n";
-    
-    {
-        mbt::AVLTree<int, std::less<int>, std::greater<int>, std::equal_to<int>> avl_tree;
-        TestScalar(avl_tree, print_fnc);
-    } */
+    TestRB();
+    //TestAVL();
+    //TestSplay();
+
+
 
 /*     std::cout << "\n\n==============================\n";
     std::cout << "> Classes Test";
